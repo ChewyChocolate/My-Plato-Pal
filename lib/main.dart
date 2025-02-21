@@ -11,7 +11,7 @@ class MyPlatoPal extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: SplashScreen(), // Start at SplashScreen
+      home: SplashScreen(),
     );
   }
 }
@@ -193,7 +193,7 @@ class LoginScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 30),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green[700], // Corrected here
+          backgroundColor: Colors.green[700],
           padding: EdgeInsets.symmetric(vertical: 15),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -338,7 +338,7 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = [
     HomeScreen(),
     SearchScreen(),
-    MenuScreen(),
+    SettingsScreen(),
   ];
 
   @override
@@ -358,7 +358,7 @@ class _MainScreenState extends State<MainScreen> {
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
-          BottomNavigationBarItem(icon: Icon(Icons.menu), label: "Menu"),
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: "Settings"),
         ],
       ),
     );
@@ -424,7 +424,6 @@ class HomeContent extends StatelessWidget {
   }
 }
 
-// Dummy Screens for Navigation
 class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});
 
@@ -439,13 +438,104 @@ class SearchScreen extends StatelessWidget {
             end: Alignment.bottomCenter,
           ),
         ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      // Use Flexible to prevent overflow
+                      child: Text(
+                        'MyPlatoPal: A Guide to\nHealthy Diet',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green[900],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    SizedBox(width: 2), // Spacing between text and logo
+                    Image.asset(
+                      'images/MyPlatoPalLogo.png',
+                      width: 100,
+                      height: 100,
+                    ),
+                  ],
+                ),
+              ),
+              // Search Bar
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20),
+                child: TextField(
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.green[300],
+                    hintText: 'Food for diabetic person',
+                    hintStyle: TextStyle(color: Colors.white),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      borderSide: BorderSide.none,
+                    ),
+                    suffixIcon: Icon(Icons.search, color: Colors.white),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      borderSide:
+                          BorderSide(color: Colors.green[300]!, width: 2),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      borderSide:
+                          BorderSide(color: Colors.green[700]!, width: 2),
+                    ),
+                  ),
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Recent',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.green[900],
+                      ),
+                    ),
+                    Text(
+                      'See all',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.green[800],
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child:
+                    Container(), // Placeholder for additional content if needed
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
-class MenuScreen extends StatelessWidget {
-  const MenuScreen({super.key});
+class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -458,7 +548,98 @@ class MenuScreen extends StatelessWidget {
             end: Alignment.bottomCenter,
           ),
         ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Back Arrow
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: IconButton(
+                    icon: Icon(Icons.arrow_back_ios, color: Colors.green[900]),
+                    onPressed: () {
+                      Navigator.pop(context); // Go back to previous screen
+                    },
+                  ),
+                ),
+              ),
+              // Profile Section
+              CircleAvatar(
+                radius: 50,
+                backgroundImage: AssetImage('images/profile.png'),
+              ),
+              SizedBox(height: 10),
+              Text(
+                'Rasyel',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green[900],
+                ),
+              ),
+              Text(
+                'View Profile',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.green[800],
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+              SizedBox(height: 20),
+              // Settings Menu
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    _buildMenuItem(
+                        'Notifications', Icons.notifications, context),
+                    _buildMenuItem('General', Icons.settings, context),
+                    _buildMenuItem('Saved', Icons.bookmark, context),
+                    Divider(),
+                    _buildMenuItem('Help Center', Icons.help, context),
+                    _buildMenuItem(
+                        'Terms of Service', Icons.description, context),
+                    _buildMenuItem('Privacy Policy', Icons.lock, context),
+                    _buildMenuItem('About', Icons.info, context),
+                    Divider(),
+                    ListTile(
+                      leading: Icon(Icons.logout, color: Colors.green[900]),
+                      title: Text(
+                        'Log out',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.green[900],
+                        ),
+                      ),
+                      onTap: () {
+                        // Add logout logic here
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildMenuItem(String title, IconData icon, BuildContext context) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.green[900]),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 16,
+          color: Colors.green[900],
+        ),
+      ),
+      trailing: Icon(Icons.arrow_forward_ios, color: Colors.green[900]),
+      onTap: () {
+        // Add navigation or action for each menu item
+      },
     );
   }
 }
