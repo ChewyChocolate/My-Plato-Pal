@@ -381,7 +381,9 @@ class HomeScreen extends StatelessWidget {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: HomeContent(),
+        child: SafeArea(
+          child: HomeContent(), // Wrap HomeContent with SafeArea
+        ),
       ),
     );
   }
@@ -393,32 +395,60 @@ class HomeContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      child: Column(
-        children: [
-          SizedBox(height: 20),
-          Text(
-            "Welcome to MyPlatoPal!",
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 10),
-          Image.asset(
-            'images/Cropped-Home-Images/home_img1.jpg',
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
-          SizedBox(height: 10),
-          Image.asset(
-            'images/Cropped-Home-Images/home_img2.jpg',
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
-          SizedBox(height: 10),
-          Image.asset(
-            'images/Cropped-Home-Images/home_img3.jpg',
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+            horizontal: 16.0, vertical: 20.0), // Add padding
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center, // Center-align content
+          children: [
+            SizedBox(height: 20),
+            Text(
+              "Welcome to MyPlatoPal!",
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.green[900], // Match app theme
+              ),
+              textAlign: TextAlign.center, // Explicitly center the text
+            ),
+            SizedBox(height: 20), // Increased spacing for better separation
+            // Image 1 with constrained width
+            ClipRRect(
+              borderRadius:
+                  BorderRadius.circular(10), // Optional: Add rounded corners
+              child: Image.asset(
+                'images/Cropped-Home-Images/home_img1.jpg',
+                fit: BoxFit.cover,
+                width: MediaQuery.of(context).size.width *
+                    0.9, // 90% of screen width
+              ),
+            ),
+            SizedBox(height: 20), // Increased spacing
+            // Image 2 with constrained width
+            ClipRRect(
+              borderRadius:
+                  BorderRadius.circular(10), // Optional: Add rounded corners
+              child: Image.asset(
+                'images/Cropped-Home-Images/home_img2.jpg',
+                fit: BoxFit.cover,
+                width: MediaQuery.of(context).size.width *
+                    0.9, // 90% of screen width
+              ),
+            ),
+            SizedBox(height: 20), // Increased spacing
+            // Image 3 with constrained width
+            ClipRRect(
+              borderRadius:
+                  BorderRadius.circular(10), // Optional: Add rounded corners
+              child: Image.asset(
+                'images/Cropped-Home-Images/home_img3.jpg',
+                fit: BoxFit.cover,
+                width: MediaQuery.of(context).size.width *
+                    0.9, // 90% of screen width
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
