@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "819709725317",
+    "project_id": "myplatopal",
+    "storage_bucket": "myplatopal.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:819709725317:android:91e0f60dca8210e9bc77ec",
+        "android_client_info": {
+          "package_name": "com.example.my_plato_pal"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_4a_z8WOwywWaNK--sDHkCoazGMdvKG8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

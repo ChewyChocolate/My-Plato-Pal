@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
+void main() async {
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(MyPlatoPal());
 }
 
@@ -188,7 +194,7 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildButton(String label) {
+  Widget buildButton(String label) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30),
       child: ElevatedButton(
