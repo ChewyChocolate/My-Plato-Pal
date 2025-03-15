@@ -78,8 +78,40 @@ class SplashScreen extends StatelessWidget {
   }
 }
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Future<void> _login() async {
+    if (!mounted) return; // Check if widget is still mounted
+    try {
+      await _auth.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MainScreen()),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        print("Login failed: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Login failed: $e")),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,35 +144,12 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 20),
-              _buildTextField('Name'),
-              _buildTextField('Password', obscureText: true),
+              _buildTextField('Email', controller: _emailController),
+              _buildTextField('Password',
+                  obscureText: true, controller: _passwordController),
               SizedBox(height: 20),
-
-              // Log in
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => MainScreen()),
-                  );
-                },
-                child: Column(
-                  children: [
-                    Text(
-                      'Log In',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.green[800],
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                    SizedBox(height: 5),
-                  ],
-                ),
-              ),
+              _buildButton('Log In', onPressed: _login),
               SizedBox(height: 10),
-
-              //Sign Up
               GestureDetector(
                 onTap: () {
                   Navigator.push(
@@ -177,10 +186,12 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(String label, {bool obscureText = false}) {
+  Widget _buildTextField(String label,
+      {bool obscureText = false, required TextEditingController controller}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
       child: TextField(
+        controller: controller,
         obscureText: obscureText,
         decoration: InputDecoration(
           filled: true,
@@ -194,7 +205,7 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  Widget buildButton(String label) {
+  Widget _buildButton(String label, {required VoidCallback onPressed}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30),
       child: ElevatedButton(
@@ -205,7 +216,7 @@ class LoginScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-        onPressed: () {},
+        onPressed: onPressed,
         child: Center(
           child: Text(
             label,
