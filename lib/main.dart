@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-// import 'firebase_options.dart';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -619,16 +621,177 @@ class SearchScreen extends StatelessWidget {
   }
 }
 
-class SettingsScreen extends StatelessWidget {
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Profile')),
+      body: const Center(child: Text('Profile Screen')),
+    );
+  }
+}
+
+class NotificationsScreen extends StatelessWidget {
+  const NotificationsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Notifications')),
+      body: const Center(child: Text('Notifications Screen')),
+    );
+  }
+}
+
+class GeneralScreen extends StatelessWidget {
+  const GeneralScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('General')),
+      body: const Center(child: Text('General Settings Screen')),
+    );
+  }
+}
+
+class SavedScreen extends StatelessWidget {
+  const SavedScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Saved')),
+      body: const Center(child: Text('Saved Items Screen')),
+    );
+  }
+}
+
+class HelpCenterScreen extends StatelessWidget {
+  const HelpCenterScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Help Center')),
+      body: const Center(child: Text('Help Center Screen')),
+    );
+  }
+}
+
+class TermsOfServiceScreen extends StatelessWidget {
+  const TermsOfServiceScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Terms of Service')),
+      body: const Center(child: Text('Terms of Service Screen')),
+    );
+  }
+}
+
+class PrivacyPolicyScreen extends StatelessWidget {
+  const PrivacyPolicyScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Privacy Policy')),
+      body: const Center(child: Text('Privacy Policy Screen')),
+    );
+  }
+}
+
+class AboutScreen extends StatelessWidget {
+  const AboutScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('About')),
+      body: const Center(child: Text('About Screen')),
+    );
+  }
+}
+
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  _SettingsScreenState createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  final User? user = FirebaseAuth.instance.currentUser;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+  File? _profileImage;
+  String? _profileImageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileImage();
+  }
+
+  Future<void> _loadProfileImage() async {
+    if (user != null) {
+      final doc = await _firestore.collection('users').doc(user!.uid).get();
+      if (doc.exists) {
+        setState(() {
+          _profileImageUrl = doc.data()?['profileImageUrl'];
+        });
+      }
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _profileImage = File(pickedFile.path);
+      });
+
+      // Upload to Firebase Storage
+      if (user != null) {
+        final ref = _storage.ref().child('profile_images/${user!.uid}.jpg');
+        await ref.putFile(_profileImage!);
+        final url = await ref.getDownloadURL();
+
+        // Update Firestore with the new image URL
+        await _firestore.collection('users').doc(user!.uid).update({
+          'profileImageUrl': url,
+        });
+
+        setState(() {
+          _profileImageUrl = url;
+        });
+      }
+    }
+  }
+
+  Future<void> _logout() async {
+    await FirebaseAuth.instance.signOut();
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFFFFFFF), Color(0xFFB2E59A)],
+            colors: [Color(0xFFDFF4D7), Color(0xFFB2E59A)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -644,50 +807,197 @@ class SettingsScreen extends StatelessWidget {
                   child: IconButton(
                     icon: Icon(Icons.arrow_back_ios, color: Colors.green[900]),
                     onPressed: () {
-                      Navigator.pop(context); // Go back to previous screen
+                      Navigator.pop(context);
                     },
                   ),
                 ),
               ),
               // Profile Section
-              CircleAvatar(
-                radius: 50,
-                backgroundImage: AssetImage('images/profile.png'),
-              ),
-              SizedBox(height: 10),
-              Text(
-                'Rasyel',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green[900],
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        spreadRadius: 2,
+                        blurRadius: 5,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundImage: _profileImage != null
+                        ? FileImage(_profileImage!)
+                        : _profileImageUrl != null
+                            ? NetworkImage(_profileImageUrl!)
+                            : const AssetImage('images/default_profile.png')
+                                as ImageProvider,
+                    child: Align(
+                      alignment: Alignment.bottomRight,
+                      child: CircleAvatar(
+                        radius: 15,
+                        backgroundColor: Colors.green[700],
+                        child: const Icon(
+                          Icons.camera_alt,
+                          size: 15,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-              Text(
-                'View Profile',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.green[800],
-                  decoration: TextDecoration.underline,
+              const SizedBox(height: 10),
+              FutureBuilder<DocumentSnapshot>(
+                future: _firestore.collection('users').doc(user?.uid).get(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Text(
+                      'Loading...',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    );
+                  }
+                  if (snapshot.hasError) {
+                    return const Text(
+                      'Error',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
+                      ),
+                    );
+                  }
+                  final data = snapshot.data?.data() as Map<String, dynamic>?;
+                  final userName = data?['name'] ?? 'User';
+                  return Text(
+                    userName,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
+                  );
+                },
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const ProfileScreen()),
+                  );
+                },
+                child: const Text(
+                  'View Profile',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.green,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               // Settings Menu
               Expanded(
                 child: ListView(
                   padding: EdgeInsets.zero,
                   children: [
                     _buildMenuItem(
-                        'Notifications', Icons.notifications, context),
-                    _buildMenuItem('General', Icons.settings, context),
-                    _buildMenuItem('Saved', Icons.bookmark, context),
-                    Divider(),
-                    _buildMenuItem('Help Center', Icons.help, context),
+                      'Notifications',
+                      Icons.notifications,
+                      context,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const NotificationsScreen()),
+                        );
+                      },
+                    ),
                     _buildMenuItem(
-                        'Terms of Service', Icons.description, context),
-                    _buildMenuItem('Privacy Policy', Icons.lock, context),
-                    _buildMenuItem('About', Icons.info, context),
-                    Divider(),
+                      'General',
+                      Icons.settings,
+                      context,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const GeneralScreen()),
+                        );
+                      },
+                    ),
+                    _buildMenuItem(
+                      'Saved',
+                      Icons.bookmark,
+                      context,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const SavedScreen()),
+                        );
+                      },
+                    ),
+                    const Divider(),
+                    _buildMenuItem(
+                      'Help Center',
+                      Icons.help,
+                      context,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const HelpCenterScreen()),
+                        );
+                      },
+                    ),
+                    _buildMenuItem(
+                      'Terms of Service',
+                      Icons.description,
+                      context,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const TermsOfServiceScreen()),
+                        );
+                      },
+                    ),
+                    _buildMenuItem(
+                      'Privacy Policy',
+                      Icons.lock,
+                      context,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const PrivacyPolicyScreen()),
+                        );
+                      },
+                    ),
+                    _buildMenuItem(
+                      'About',
+                      Icons.info,
+                      context,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const AboutScreen()),
+                        );
+                      },
+                    ),
+                    const Divider(),
                     ListTile(
                       leading: Icon(Icons.logout, color: Colors.green[900]),
                       title: Text(
@@ -697,9 +1007,7 @@ class SettingsScreen extends StatelessWidget {
                           color: Colors.green[900],
                         ),
                       ),
-                      onTap: () {
-                        // Add logout logic here
-                      },
+                      onTap: _logout,
                     ),
                   ],
                 ),
@@ -711,20 +1019,19 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem(String title, IconData icon, BuildContext context) {
+  Widget _buildMenuItem(String title, IconData icon, BuildContext context,
+      {VoidCallback? onTap}) {
     return ListTile(
       leading: Icon(icon, color: Colors.green[900]),
       title: Text(
         title,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 16,
-          color: Colors.green[900],
+          color: Colors.green,
         ),
       ),
       trailing: Icon(Icons.arrow_forward_ios, color: Colors.green[900]),
-      onTap: () {
-        // Add navigation or action for each menu item
-      },
+      onTap: onTap,
     );
   }
 }
