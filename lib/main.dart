@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 // import 'firebase_options.dart';
 
 void main() async {
@@ -218,8 +220,53 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
-class CreateAccountScreen extends StatelessWidget {
+class CreateAccountScreen extends StatefulWidget {
   const CreateAccountScreen({super.key});
+
+  @override
+  _CreateAccountScreenState createState() => _CreateAccountScreenState();
+}
+
+class _CreateAccountScreenState extends State<CreateAccountScreen> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<void> _signUp() async {
+    if (!mounted) return; // Check if widget is still mounted
+    try {
+      // Create user with email and password
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      // Store user data in Firestore
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'name': _nameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'createdAt': Timestamp.now(),
+      });
+
+      // Navigate only if widget is still mounted
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MainScreen()),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        print("Sign-up failed: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Sign-up failed: $e")),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -261,24 +308,15 @@ class CreateAccountScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 20),
-              _buildTextInput('Name'),
-              _buildTextInput('Password', obscureText: true),
+              _buildTextInput('Name', controller: _nameController),
+              _buildTextInput('Email', controller: _emailController),
+              _buildTextInput('Password',
+                  obscureText: true, controller: _passwordController),
               SizedBox(height: 20),
-              _buildButton('Sign Up'),
+              _buildButton('Sign Up',
+                  onPressed: _signUp), // Changed to onPressed
               SizedBox(height: 10),
-              GestureDetector(
-                onTap: () {
-                  // Add navigation logic if needed
-                },
-                child: Text(
-                  'Sign in Email',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[700],
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
+              // Removed "Sign in Email" option as requested
             ],
           ),
         ),
@@ -286,10 +324,12 @@ class CreateAccountScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTextInput(String label, {bool obscureText = false}) {
+  Widget _buildTextInput(String label,
+      {bool obscureText = false, required TextEditingController controller}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
       child: TextField(
+        controller: controller,
         obscureText: obscureText,
         decoration: InputDecoration(
           filled: true,
@@ -303,7 +343,7 @@ class CreateAccountScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildButton(String label) {
+  Widget _buildButton(String label, {required VoidCallback onPressed}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30),
       child: ElevatedButton(
@@ -314,7 +354,7 @@ class CreateAccountScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-        onPressed: () {},
+        onPressed: onPressed, // Correct parameter name
         child: Center(
           child: Text(
             label,
