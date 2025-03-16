@@ -511,16 +511,63 @@ class HomeContent extends StatelessWidget {
   }
 }
 
-class SearchScreen extends StatelessWidget {
+// Screen to display food lists for a specific condition
+class FoodListScreen extends StatelessWidget {
+  final String condition;
+  final List<String> foods;
+  final String title;
+
+  const FoodListScreen({
+    super.key,
+    required this.condition,
+    required this.foods,
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+        backgroundColor: Colors.green[700],
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16.0),
+        itemCount: foods.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(
+              foods[index],
+              style: const TextStyle(fontSize: 18, color: Colors.black87),
+            ),
+            leading: Icon(
+              title.contains('Eat') ? Icons.check_circle : Icons.cancel,
+              color: title.contains('Eat') ? Colors.green : Colors.red,
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
+
+  @override
+  _SearchScreenState createState() => _SearchScreenState();
+}
+
+class _SearchScreenState extends State<SearchScreen> {
+  String? _selectedCondition; // Track the currently selected condition
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFFFFFFF), Color(0xFFB2E59A)],
+            colors: [Color(0xFFDFF4D7), Color(0xFFB2E59A)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -533,86 +580,214 @@ class SearchScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Flexible(
-                      // Use Flexible to prevent overflow
-                      child: Text(
-                        'MyPlatoPal: A Guide to\nHealthy Diet',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green[900],
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    SizedBox(width: 2), // Spacing between text and logo
                     Image.asset(
                       'images/MyPlatoPalLogo.png',
-                      width: 100,
-                      height: 100,
+                      width: 50,
+                      height: 50,
                     ),
-                  ],
-                ),
-              ),
-              // Search Bar
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20),
-                child: TextField(
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.green[300],
-                    hintText: 'Food for diabetic person',
-                    hintStyle: TextStyle(color: Colors.white),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide: BorderSide.none,
-                    ),
-                    suffixIcon: Icon(Icons.search, color: Colors.white),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide:
-                          BorderSide(color: Colors.green[300]!, width: 2),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide:
-                          BorderSide(color: Colors.green[700]!, width: 2),
-                    ),
-                  ),
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Recent',
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Health Condition List',
                       style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.green[900],
-                      ),
-                    ),
-                    Text(
-                      'See all',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.green[800],
-                        decoration: TextDecoration.underline,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
                       ),
                     ),
                   ],
                 ),
               ),
+              // Health Condition List
               Expanded(
-                child:
-                    Container(), // Placeholder for additional content if needed
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('health_conditions')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    // Handle loading state
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(color: Colors.green),
+                      );
+                    }
+                    // Handle error state
+                    if (snapshot.hasError) {
+                      return const Center(
+                        child: Text(
+                          'Error loading conditions',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      );
+                    }
+                    // Handle empty state
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          'No conditions found',
+                          style: TextStyle(color: Colors.black87),
+                        ),
+                      );
+                    }
+
+                    final conditions = snapshot.data!.docs;
+
+                    return ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      itemCount: conditions.length,
+                      itemBuilder: (context, index) {
+                        final conditionData =
+                            conditions[index].data() as Map<String, dynamic>;
+                        final conditionName = conditionData['name'] as String;
+                        final imageUrl = conditionData['imageUrl'] as String;
+                        final foodsToEat = List<String>.from(
+                            conditionData['foodsToEat'] ?? []);
+                        final foodsToAvoid = List<String>.from(
+                            conditionData['foodsToAvoid'] ?? []);
+
+                        return _buildConditionItem(
+                          context,
+                          conditionName,
+                          imageUrl,
+                          foodsToEat,
+                          foodsToAvoid,
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildConditionItem(
+    BuildContext context,
+    String condition,
+    String imageUrl,
+    List<String> foodsToEat,
+    List<String> foodsToAvoid,
+  ) {
+    final isSelected = _selectedCondition == condition;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            // Toggle selection: if the same condition is tapped, deselect it; otherwise, select the new condition
+            _selectedCondition = isSelected ? null : condition;
+          });
+        },
+        child: Container(
+          height: isSelected ? 200 : 150, // Increase height when selected
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            image: DecorationImage(
+              image: NetworkImage(imageUrl),
+              fit: BoxFit.cover,
+              colorFilter: ColorFilter.mode(
+                Colors.black.withOpacity(0.3),
+                BlendMode.dstATop,
+              ),
+            ),
+          ),
+          child: Stack(
+            children: [
+              // Condition Title
+              Center(
+                child: Text(
+                  condition.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: isSelected ? 40 : 28, // Larger font when selected
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    shadows: const [
+                      Shadow(
+                        color: Colors.black54,
+                        offset: Offset(2, 2),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Buttons (shown only when selected)
+              if (isSelected)
+                Positioned(
+                  bottom: 20,
+                  left: 0,
+                  right: 0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => FoodListScreen(
+                                condition: condition,
+                                foods: foodsToEat,
+                                title: 'Foods to Eat - $condition',
+                              ),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'Foods to Eat',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => FoodListScreen(
+                                condition: condition,
+                                foods: foodsToAvoid,
+                                title: 'Foods to Avoid - $condition',
+                              ),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'Foods to Avoid',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
             ],
           ),
         ),
@@ -909,19 +1084,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: ListView(
                   padding: EdgeInsets.zero,
                   children: [
-                    _buildMenuItem(
-                      'Notifications',
-                      Icons.notifications,
-                      context,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  const NotificationsScreen()),
-                        );
-                      },
-                    ),
                     _buildMenuItem(
                       'General',
                       Icons.settings,
