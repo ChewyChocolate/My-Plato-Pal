@@ -326,10 +326,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
               _buildTextInput('Password',
                   obscureText: true, controller: _passwordController),
               SizedBox(height: 20),
-              _buildButton('Sign Up',
-                  onPressed: _signUp), // Changed to onPressed
+              _buildButton('Sign Up', onPressed: _signUp),
               SizedBox(height: 10),
-              // Removed "Sign in Email" option as requested
             ],
           ),
         ),
